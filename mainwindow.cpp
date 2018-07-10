@@ -7,6 +7,9 @@ MainWindow::MainWindow(QWidget *parent)
     wasConnectionTrial = false;
     db = QSqlDatabase::addDatabase("QPSQL", "mydb");
 
+    openConnectionParams =  qStringsVector(
+                                {QString(""), QString(""), QString("")});
+
     dbConnectionButton  = new QPushButton("new connection");
     dbConnectionLabel   = new QLabel("not connected");
 
@@ -32,16 +35,12 @@ void MainWindow::totalConnect()
             this,                     SLOT(dbConnectionDialogue()));
 }
 
-void MainWindow::tryConnect(QString _dbname, QString _username, QString _password)
+void MainWindow::tryConnect()
 {
-    dbname = QString(_dbname);
-    username = QString(_username);
-    password = QString(_password);
-
     db.setHostName("127.0.0.1");
-    db.setDatabaseName(dbname);
-    db.setUserName(username);
-    db.setPassword(password);
+    db.setDatabaseName(openConnectionParams.at(DBNAME_POSITION));
+    db.setUserName(openConnectionParams.at(USERNAME_POSITION));
+    db.setPassword(openConnectionParams.at(PASSWORD_POSITION));
 
     isConnected = db.open();
     wasConnectionTrial = true;
@@ -50,12 +49,14 @@ void MainWindow::tryConnect(QString _dbname, QString _username, QString _passwor
 void MainWindow::dbConnectionDialogue()
 {
     if(!isConnected){
-        ConnectionDial *dbDial  = new ConnectionDial(this, dbname, username, password);
+        ConnectionDial *dbDial  = new ConnectionDial(this, &openConnectionParams);
         QMessageBox    *msg     = new QMessageBox(this);
 
-        connect(dbDial, SIGNAL(dbConnectionRequest(QString, QString, QString)),
-                this,   SLOT(tryConnect(QString, QString, QString)));
+        dbDial->setAttribute(Qt::WA_DeleteOnClose);
+        msg->setAttribute(Qt::WA_DeleteOnClose);
 
+        connect(dbDial, SIGNAL(dbConnectionRequest()),
+                this,   SLOT(tryConnect()));
         dbDial->exec();
 
         if (isConnected) {

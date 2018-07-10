@@ -5,7 +5,6 @@
 #include <QMenu>
 #include <QAction>
 #include <QSqlDatabase>
-#include <QMessageBox>
 
 #include "connectiondial.h"
 
@@ -26,7 +25,8 @@ private:
 
     bool isConnected, wasConnectionTrial;
     QSqlDatabase db;
-    QString dbname, username, password;
+    qStringsVector openConnectionParams;
+
     ConnectionDial *dbDial;
 
     QHBoxLayout *hLayout, *mainLayout;
@@ -39,7 +39,8 @@ private:
 
 private slots:
     void dbConnectionDialogue();
-    void tryConnect(QString _dbname, QString _username, QString _password);
+    //void tryConnect(QString _dbname, QString _username, QString _password);
+    void tryConnect();
 };
 
 #endif // MAINWINDOW_H

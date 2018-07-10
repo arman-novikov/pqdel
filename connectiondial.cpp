@@ -1,12 +1,10 @@
 #include "connectiondial.h"
 
-ConnectionDial::ConnectionDial(QWidget *parent,
-                               QString &dbnameS,
-                               QString &usernameS,
-                               QString &passwordS)
+ConnectionDial::ConnectionDial(QWidget *parent, qStringsVector *connectionParams)
     : QDialog(parent)
 {
-    initWidgets(dbnameS, usernameS, passwordS);
+    initWidgets(connectionParams);
+    params = connectionParams;
 
     dbnamelbl->setText("database");
     usernamelbl->setText("username");
@@ -44,13 +42,11 @@ ConnectionDial::ConnectionDial(QWidget *parent,
     totalConnect();
 }
 
-void ConnectionDial::initWidgets(QString &dbnameS,
-                                 QString &usernameS,
-                                 QString &passwordS)
+void ConnectionDial::initWidgets(qStringsVector *connectionParams)
 {
-    dbname = new QLineEdit(dbnameS);
-    username = new QLineEdit(usernameS);
-    password = new QLineEdit(passwordS);
+    dbname = new QLineEdit(connectionParams->at(DBNAME_POSITION));
+    username = new QLineEdit(connectionParams->at(USERNAME_POSITION));
+    password = new QLineEdit(connectionParams->at(PASSWORD_POSITION));
     password->setEchoMode(QLineEdit::Password);
 
     dbnamelbl = new QLabel();
@@ -67,7 +63,6 @@ void ConnectionDial::initWidgets(QString &dbnameS,
 
     mainlay = new QVBoxLayout(this);
 }
-
 void ConnectionDial::totalConnect()
 {
     connect(cancelButton, SIGNAL(clicked(bool)), this, SLOT(close()));
@@ -76,7 +71,21 @@ void ConnectionDial::totalConnect()
 
 void ConnectionDial::connectClicked()
 {
-    emit dbConnectionRequest(dbname->text(), username->text(), password->text());
+    if (dbname->text().isEmpty()   ||
+        username->text().isEmpty() ||
+        password->text().isEmpty()) {
+
+        QMessageBox *msg = new QMessageBox(this);
+        msg->setAttribute(Qt::WA_DeleteOnClose);
+        msg->setText("fill data fields");
+        msg->exec();
+        return;
+    }
+
+    params->replace(DBNAME_POSITION, dbname->text());
+    params->replace(USERNAME_POSITION, username->text());
+    params->replace(PASSWORD_POSITION, password->text());
+    emit dbConnectionRequest();
     close();
 }
 
